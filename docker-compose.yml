@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  ghost:
+    image: ghost:4.2.1-alpine
+    container_name: ghost-dev
+    restart: unless-stopped
+    depends_on:
+      - db
+    ports:
+      - 2368:2368
+    environment:
+      # see https://ghost.org/docs/config/#configuration-options
+      database__client: mysql
+      database__connection__host: db
+      database__connection__user: ${MYSQL_USER}
+      database__connection__password: ${MYSQL_PASSWORD}
+      database__connection__database: ${MYSQL_DATABASE}
+      url: http://localhost:2368
+      NODE_ENV: development
+    volumes:
+      - ghost_content:/var/lib/ghost/content
+
+  db:
+    image: mysql:8
+    container_name: ghost-dev-db
+    command: mysqld --default-authentication-plugin=mysql_native_password
+    restart: unless-stopped
+    ports:
+      - 3307:3306
+    environment:
+      # see https://hub.docker.com/_/mysql
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    volumes:
+      - mysql_ghost_data:/var/lib/mysql
+
+volumes:
+  mysql_ghost_data:
+  ghost_content:
